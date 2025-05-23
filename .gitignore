@@ -1,0 +1,4 @@
+# produced during compilation
+*.o
+# produced by make
+*.d
