@@ -4,13 +4,28 @@
 
 #include "DistrhoPlugin.hpp"
 
-
-// max chunk size to process audio
+// max chunk size to process audio, car be set before including here
+#ifndef BUFFER_SIZE
 #define BUFFER_SIZE 128
+#endif
+
+// some plugins might have inner buffer other than float, e.g. if using fixed point
+#ifndef BUFFER_TYPE 
+#define BUFFER_TYPE float
+#endif
+
+// if buffers other than float we need to convert values, override with a specific function to do just that from DPF buffer to inner buffer, e.g. float_to_fix()
+#ifndef BUFFER_IN_FUN
+#define BUFFER_IN_FUN(X) X
+#endif
+
+// same for converting from inner buffer to DPF buffer, e.g. fix_to_float()
+#ifndef BUFFER_OUT_FUN
+#define BUFFER_OUT_FUN(X) X
+#endif
 
 
-// Wrapper to factorize code between plugins. Consider at the moment at most one input and one output
-// NOTE: this wrapper derives from Obtuse, dealing here with regular floats (instead of fixed float). We use a fixed-size buffer to interleave MIDI messages.
+// Wrapper to factorize code between plugins. Consider at the moment at most one input and one output. We use a fixed-size buffer to interleave MIDI messages.
 // TODO: option to process MIDI event with frame-perfect accuracy? (at the moment precision of the call is chunk size)
 // FIXME: only take into account first input and first output (if any)
 class ExtendedPlugin : public Plugin {
@@ -21,16 +36,16 @@ public:
   ExtendedPlugin(uint32_t parameterCount, uint32_t programCount, uint32_t stateCount) : Plugin(parameterCount, programCount, stateCount) {
     // init buffer
     for (int i = 0; i < BUFFER_SIZE; i++) {
-      buffIn[i] = 0.0;
-      buffOut[i] = 0.0;
+      buffIn[i] = BUFFER_IN_FUN(0.0);
+      buffOut[i] = BUFFER_IN_FUN(0.0);
     }
 
   }
 
 protected:
   // to be filled by sub-class
-  float buffIn[BUFFER_SIZE];
-  float buffOut[BUFFER_SIZE];
+  BUFFER_TYPE buffIn[BUFFER_SIZE];
+  BUFFER_TYPE buffOut[BUFFER_SIZE];
 
   // default to AGPL3 for license, override if necessary
   const char *getLicense() const override { return "AGPL3"; }
@@ -208,7 +223,7 @@ protected:
       // we could have NULL pointer, e.g. if asked for CV but not supported
       if (in != NULL) {
 	for (uint32_t i = 0; i < chunkSize; i++) {
-	  buffIn[i] = in[k+i];
+	  buffIn[i] = BUFFER_IN_FUN(in[k+i]);
 	}
       }
 #endif // DISTRHO_PLUGIN_NUM_INPUTS > 0
@@ -218,7 +233,7 @@ protected:
 #if DISTRHO_PLUGIN_NUM_OUTPUTS > 0
       if (out != NULL) {
 	for (uint32_t i = 0; i < chunkSize; i++) {
-	  out[k+i] = buffOut[i];
+	  out[k+i] = BUFFER_OUT_FUN(buffOut[i]);
 	}
       }
 #endif // DISTRHO_PLUGIN_NUM_OUTPUTS > 0
@@ -265,7 +280,7 @@ protected:
 #if DISTRHO_PLUGIN_NUM_INPUTS > 0
       if (in != NULL) {
 	for (uint32_t i = 0; i < chunkSize; i++) {
-	  buffIn[i] = float_to_fix(in[k+i]);
+	  buffIn[i] = BUFFER_IN_FUN(in[k+i]);
 	}
       }
 #endif // DISTRHO_PLUGIN_NUM_INPUTS > 0
@@ -275,7 +290,7 @@ protected:
 #if DISTRHO_PLUGIN_NUM_OUTPUTS > 0
       if (out != NULL) {
 	for (uint32_t i = 0; i < chunkSize; i++) {
-	  out[k+i] = fix_to_float(buffOut[i]);
+	  out[k+i] = BUFFER_OUT_FUN(buffOut[i]);
 	}
       }
 #endif // DISTRHO_PLUGIN_NUM_OUTPUTS > 0
