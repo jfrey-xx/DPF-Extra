@@ -9,8 +9,8 @@ START_NAMESPACE_DISTRHO
 
 #define MIN(a, b) ((a)<(b)? (a) : (b))
 
- RayUI::RayUI(uint newFPS, TextureFilter filter)
-  : UI(DISTRHO_UI_DEFAULT_WIDTH, DISTRHO_UI_DEFAULT_HEIGHT) 
+ RayUI::RayUI(uint width, uint height, uint newFPS, TextureFilter filter)
+  : UI(width, height)
 {
   fps = newFPS;
 
@@ -41,8 +41,8 @@ START_NAMESPACE_DISTRHO
   }
 
   // to get a consistent display the canvas size is set in stone to the default size. Only the window will be scaled
-  canvasWidth = DISTRHO_UI_DEFAULT_WIDTH;
-  canvasHeight = DISTRHO_UI_DEFAULT_HEIGHT;
+  canvasWidth = width;
+  canvasHeight = height;
   setGeometryConstraints(canvasWidth * scaleFactor, canvasHeight * scaleFactor);
   
   // we have to resize window size if a scale factor is to be applied
