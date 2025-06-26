@@ -103,6 +103,14 @@ VST2_RESOURCES_DIR=$(TARGET_DIR)/$(NAME).vst/resources
 CLAP_RESOURCES_DIR=$(TARGET_DIR)/$(NAME).clap/resources
 endif
 
+
+# detect if either OPENGL3 or GLES2 is sected at DPF level -- only these two options tested at the moment on desktop, tested on macos and linux
+ifeq ($(USE_OPENGL3),true)
+SELECTED_GRAPHICS=GRAPHICS_API_OPENGL_33
+else
+SELECTED_GRAPHICS=GRAPHICS_API_OPENGL_ES2
+endif
+
 # copy (at this stage, link) content of resources folder to destination
 # TODO: do not run again if already performed
 # WARNING with jack: in case there are several plugins with jack and resources with the same name, one will take precedence
@@ -152,16 +160,16 @@ endif
 endif
 
 $(RAYUI_PATH)/raylib/src/libraylib.a:
-# HOTFIX for WASM, switch to gles3 and platform web, will override pugl
+# HOTFIX for WASM, hard-coded to gles3 and platform web, will override pugl
 ifeq ($(WASM),true)
 	$(MAKE) all -C $(RAYUI_PATH)/raylib/src PLATFORM=PLATFORM_WEB GRAPHICS=GRAPHICS_API_OPENGL_ES3 RAYLIB_MODULE_AUDIO=FALSE RAYLIB_MODULE_RAYGUI=TRUE RAYLIB_MODULE_RAYGUI_PATH=../../
 else
+	echo "Selected $(SELECTED_GRAPHICS) for raylib"
 # macos needs not to talk about deprecation, we know
-# note: both GRAPHICS_API_OPENGL_ES2 and GRAPHICS_API_OPENGL_33 working on macos and linux
 ifeq ($(MACOS),true)
-	$(MAKE) all -C $(RAYUI_PATH)/raylib/src PLATFORM=PLATFORM_DPF GRAPHICS=GRAPHICS_API_OPENGL_ES2 RAYLIB_MODULE_AUDIO=FALSE RAYLIB_MODULE_RAYGUI=TRUE RAYLIB_MODULE_RAYGUI_PATH=../../ CUSTOM_CFLAGS="-DGL_SILENCE_DEPRECATION"
+	$(MAKE) all -C $(RAYUI_PATH)/raylib/src PLATFORM=PLATFORM_DPF GRAPHICS=$(SELECTED_GRAPHICS) RAYLIB_MODULE_AUDIO=FALSE RAYLIB_MODULE_RAYGUI=TRUE RAYLIB_MODULE_RAYGUI_PATH=../../ CUSTOM_CFLAGS="-DGL_SILENCE_DEPRECATION"
 else
-	$(MAKE) all -C $(RAYUI_PATH)/raylib/src PLATFORM=PLATFORM_DPF GRAPHICS=GRAPHICS_API_OPENGL_ES2 RAYLIB_MODULE_AUDIO=FALSE RAYLIB_MODULE_RAYGUI=TRUE RAYLIB_MODULE_RAYGUI_PATH=../../
+	$(MAKE) all -C $(RAYUI_PATH)/raylib/src PLATFORM=PLATFORM_DPF GRAPHICS=$(SELECTED_GRAPHICS) RAYLIB_MODULE_AUDIO=FALSE RAYLIB_MODULE_RAYGUI=TRUE RAYLIB_MODULE_RAYGUI_PATH=../../
 endif # MAC
 endif # WASM
 
