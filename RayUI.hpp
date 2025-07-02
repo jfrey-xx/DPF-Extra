@@ -46,6 +46,10 @@ protected:
   uint getCanvasWidth() { return canvasWidth; }
   uint getCanvasHeight() { return canvasHeight; }
 
+  // wrappers to load shader to canvas shader
+  void LoadCanvasShader(const char *vsFileName, const char *fsFileName);
+  void LoadCanvasShaderFromMemory(const char *vsCode, const char *fsCode);
+
 private:
   // callback from UI class, will be split between main and canvas
   void onDisplay() override final;
@@ -65,6 +69,8 @@ private:
   uint fps;
   // (supposed) full path to resources
   String resourcesLocation;
+  // optional shader that will be applied to canvas
+  Shader canvasShader;
 };
 
 END_NAMESPACE_DISTRHO

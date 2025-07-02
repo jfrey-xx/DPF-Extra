@@ -75,6 +75,9 @@ RayUI::~RayUI() {
     removeIdleCallback(this);
   }
   UnloadRenderTexture(canvas);
+  if (IsShaderValid(canvasShader)) {
+    UnloadShader(canvasShader);
+  }
 }
 
 void RayUI::idleCallback()
@@ -116,12 +119,18 @@ void RayUI::onDisplay()
   EndTextureMode();
   
   // Draw render texture to screen, properly scaled
+  if (IsShaderValid(canvasShader)) {
+    BeginShaderMode(canvasShader);
+  }
   DrawTexturePro(
 		 canvas.texture,
 		 (Rectangle){ 0.0f, 0.0f, (float)canvas.texture.width, (float)-canvas.texture.height },
 		 (Rectangle){ (GetScreenWidth() - ((float)canvasWidth*scale))*0.5f, (GetScreenHeight() - ((float)canvasHeight*scale))*0.5f,
 			      (float)canvasWidth*scale, (float)canvasHeight*scale },
 		 (Vector2){ 0, 0 }, 0.0f, WHITE);
+  if (IsShaderValid(canvasShader)) {
+    EndShaderMode();
+  }
   
   // back to global mouse coordinates for the last pass
   SetMouseOffset(0,0);
@@ -170,6 +179,22 @@ void RayUI::onResize(const ResizeEvent& event)
 String RayUI::getResourcesLocation()
 {
   return String(resourcesLocation);
+}
+
+void RayUI::LoadCanvasShader(const char *vsFileName, const char *fsFileName) {
+  // user might want to replace existing shader
+  if (IsShaderValid(canvasShader)) {
+    UnloadShader(canvasShader);
+  }
+  canvasShader = LoadShader(vsFileName, fsFileName);
+}
+
+void RayUI::LoadCanvasShaderFromMemory(const char *vsCode, const char *fsCode) {
+  // user might want to replace existing shader
+  if (IsShaderValid(canvasShader)) {
+    UnloadShader(canvasShader);
+  }
+  canvasShader = LoadShaderFromMemory(vsCode, fsCode);
 }
 
 END_NAMESPACE_DISTRHO
