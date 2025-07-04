@@ -75,9 +75,7 @@ RayUI::~RayUI() {
     removeIdleCallback(this);
   }
   UnloadRenderTexture(canvas);
-  if (IsShaderValid(canvasShader)) {
-    UnloadShader(canvasShader);
-  }
+  UnloadShader(canvasShader);
 }
 
 void RayUI::idleCallback()
@@ -182,10 +180,8 @@ String RayUI::getResourcesLocation()
 }
 
 void RayUI::LoadCanvasShader(const char *vsFileName, const char *fsFileName) {
-  // user might want to replace existing shader
-  if (IsShaderValid(canvasShader)) {
-    UnloadShader(canvasShader);
-  }
+  // user might want to replace existing shader (will unload only if valid)
+  UnloadShader(canvasShader);
   canvasShader = LoadShader(vsFileName, fsFileName);
 }
 

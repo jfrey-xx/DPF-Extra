@@ -70,7 +70,8 @@ private:
   // (supposed) full path to resources
   String resourcesLocation;
   // optional shader that will be applied to canvas
-  Shader canvasShader;
+  // Note: init to 0 matters for relying on IsShaderValid()
+  Shader canvasShader = {0, 0};
 };
 
 END_NAMESPACE_DISTRHO
